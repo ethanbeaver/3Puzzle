@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 def calculate_complex_heuristic(board):
     total = 0
     for i in range(0, 4):
@@ -18,7 +20,7 @@ class ThreePuzzle_Node:
     def __str__(self):
         return str(self.board)
 
-    def generate_children(self, parent_map, complex_heuristic=False):
+    def generate_children(self, parent_map, complex_heuristic=False, dynamic=False):
         blank_location = self.board.index(None)
         for i in range(0, 4):
             if i != 3 - blank_location and i != blank_location:
@@ -32,7 +34,12 @@ class ThreePuzzle_Node:
                 if not ThreePuzzle_Node.state_in_previous(parent_map, child):
                     self.children.append(child)
                     parent_map[child] = self
-
+                elif dynamic:
+                    for x in parent_map:
+                        if x.board == child.board:
+                            if x.depth > child.depth:
+                                self.children.append(child)
+                                parent_map[child] = self
 
     @staticmethod
     def state_in_previous(parent_map, node):
@@ -49,7 +56,7 @@ def BFS_Solution(root_node):
         node = to_visit.pop()
         node.generate_children(parent_map)
         to_visit = node.children + to_visit
-        if node.board == [1,2,3,None]:
+        if node.board == [1, 2, 3, None]:
             solution = []
             while node is not None:
                 solution = [node] + solution
@@ -57,63 +64,51 @@ def BFS_Solution(root_node):
             return solution
     return None
 
+
 def Branch_Bound_Solution(root_node):
     to_visit = [root_node]
     parent_map = {root_node: None}
     while(to_visit):
         node = to_visit.pop()
-        if node.board == [1,2,3,None]:
+        if node.board == [1, 2, 3, None]:
             solution = []
             while node is not None:
                 solution = [node] + solution
-                try:
-                    node = parent_map[node]
-                except:
-                    for x in parent_map:
-                        if parent_map[x] is not None and node.board == x.board:
-                            node = parent_map[x]
+                node = parent_map[node]
             return solution
         node.generate_children(parent_map)
         to_visit = node.children + to_visit
         to_visit.sort(key=lambda x: x.depth, reverse=True)
     return None
 
+
 def Branch_Bound_Simple_Heuristic_Solution(root_node):
     to_visit = [root_node]
     parent_map = {root_node: None}
     while(to_visit):
         node = to_visit.pop()
-        if node.board == [1,2,3,None]:
+        if node.board == [1, 2, 3, None]:
             solution = []
             while node is not None:
                 solution = [node] + solution
-                try:
-                    node = parent_map[node]
-                except:
-                    for x in parent_map:
-                        if parent_map[x] is not None and node.board == x.board:
-                            node = parent_map[x]
+                node = parent_map[node]
             return solution
         node.generate_children(parent_map)
         to_visit = node.children + to_visit
         to_visit.sort(key=lambda x: x.heuristic, reverse=True)
     return None
 
+
 def Branch_Bound_Complex_Heuristic_Solution(root_node):
     to_visit = [root_node]
     parent_map = {root_node: None}
     while(to_visit):
         node = to_visit.pop()
-        if node.board == [1,2,3,None]:
+        if node.board == [1, 2, 3, None]:
             solution = []
             while node is not None:
                 solution = [node] + solution
-                try:
-                    node = parent_map[node]
-                except:
-                    for x in parent_map:
-                        if parent_map[x] is not None and node.board == x.board:
-                            node = parent_map[x]
+                node = parent_map[node]
             return solution
         node.generate_children(parent_map, complex_heuristic=True)
         to_visit = node.children + to_visit
@@ -121,28 +116,55 @@ def Branch_Bound_Complex_Heuristic_Solution(root_node):
     return None
 
 
+def Branch_Bound_Dynamic_Solution(root_node):
+    to_visit = [root_node]
+    parent_map = {root_node: None}
+    while(to_visit):
+        node = to_visit.pop()
+        if node.board == [1, 2, 3, None]:
+            solution = []
+            while node is not None:
+                solution = [node] + solution
+                node = parent_map[node]
+            return solution
+        node.generate_children(parent_map, complex_heuristic=True, dynamic=True)
+        to_visit = node.children + to_visit
+        to_visit.sort(key=lambda x: x.heuristic, reverse=True)
+    return None
+
+
 if __name__ == "__main__":
-    root = ThreePuzzle_Node([3,1,2,None])
+    root = ThreePuzzle_Node([3, 1, 2, None])
     solution = BFS_Solution(root)
     print("BFS solution = [", end='')
     for i in solution:
         print(i, '\b, ', end='')
     print("\b\b]")
 
+    root = ThreePuzzle_Node([3, 1, 2, None])
     solution = Branch_Bound_Solution(root)
     print("Branch and Bound solution = [", end='')
     for i in solution:
         print(i, '\b, ', end='')
     print("\b\b]")
 
+    root = ThreePuzzle_Node([3, 1, 2, None])
     solution = Branch_Bound_Simple_Heuristic_Solution(root)
     print("Branch and Bound Simple Heuristic solution = [", end='')
     for i in solution:
         print(i, '\b, ', end='')
     print("\b\b]")
 
+    root = ThreePuzzle_Node([3, 1, 2, None])
     solution = Branch_Bound_Complex_Heuristic_Solution(root)
     print("Branch and Bound Complex Heuristic solution = [", end='')
+    for i in solution:
+        print(i, '\b, ', end='')
+    print("\b\b]")
+
+    root = ThreePuzzle_Node([3, 1, 2, None])
+    solution = Branch_Bound_Dynamic_Solution(root)
+    print("Branch and Bound Dynamic solution = [", end='')
     for i in solution:
         print(i, '\b, ', end='')
     print("\b\b]")
